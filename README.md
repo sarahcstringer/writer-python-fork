@@ -107,13 +107,20 @@ from writerai import Writer
 
 client = Writer()
 
-stream = client.completions.create(
-    model="palmyra-x-003-instruct",
-    prompt="Hi, my name is",
+chat_response = client.chat.chat(
+    messages=[{"content": "Write a poem about Python", "role": "user"}],
+    model="palmyra-x-004",
     stream=True,
 )
-for completion in stream:
-    print(completion.value)
+
+output_text = ""
+for chunk in chat_response:
+    if chunk.choices[0].delta.content:
+        output_text += chunk.choices[0].delta.content
+    else:
+        continue
+
+print(output_text)
 ```
 
 The async client uses the same interface.
@@ -124,13 +131,20 @@ from writerai import AsyncWriter
 
 client = AsyncWriter()
 
-stream = await client.completions.create(
-    model="palmyra-x-003-instruct",
-    prompt="Hi, my name is",
+chat_response = await client.chat.chat(
+    messages=[{"content": "Write a poem about Python", "role": "user"}],
+    model="palmyra-x-004",
     stream=True,
 )
-async for completion in stream:
-    print(completion.value)
+
+output_text = ""
+async for chunk in chat_response:
+    if chunk.choices[0].delta.content:
+        output_text += chunk.choices[0].delta.content
+    else:
+        continue
+
+print(output_text)
 ```
 
 For non-streaming responses, the library returns a single response object.
@@ -196,7 +210,9 @@ for graph in first_page.data:
 
 ## Handling errors
 
-When the library is unable to connect to the API (for example, due to network connection problems or a timeout), a subclass of `writerai.APIConnectionError` is raised.
+When the library is unable to connect to the API (for example, due to network connection problems, a timeout, or a firewall that doesn't allow the connection), a subclass of `writerai.APIConnectionError` is raised.
+
+> If you are behind a firewall, you may need to configure it to allow connections to the Writer API at `https://api.writer.com/v1`.
 
 When the API returns a non-success status code - 4xx or 5xx - a subclass of `writerai.APIStatusError` is raised, containing `status_code` and `response` properties.
 
@@ -457,6 +473,6 @@ import writerai
 print(writerai.__version__)
 ```
 
-## Contributing
+## Feedback
 
-See [the contributing documentation](./CONTRIBUTING.md).
+We welcome feedback! Please open an [issue](https://www.github.com/writer/writer-python/issues) with questions, bugs, or suggestions.
